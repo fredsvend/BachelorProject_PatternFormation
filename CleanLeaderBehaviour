@@ -1,0 +1,555 @@
+var chain_length = 1
+var chain_pos = 1
+var chain_id
+var chain_id_counter
+var robot_id
+var leader_turnaround
+var leader_turnaround_counter
+var tape_touching
+#0 = Leader
+#1 = Follower
+#2 = Random
+var state = 2
+var flag_follower = 0
+var flag_new_follow = 0
+var flag_leader = 0
+var follow_resp
+var follow_request
+var leader_request
+var follow_chain
+var fq_counter = 0
+
+var right
+var left
+
+var ground_value[] = [0,0]
+var ground_capture = 1
+
+var etat
+var led_state
+var fixed
+var led_pulse
+var temp
+var yy
+var xx
+var zz
+var qq
+var s
+var h
+var z
+var i
+var y
+var q     
+var u
+var f
+var k
+var kk
+var o
+var r
+var gg
+var payload_var
+     
+var speed_diff
+var speed=300
+var speed_l=0
+var max
+var mi
+var t
+
+var test = 1
+
+var temp_led
+var temp_braitenberg
+var temp_braitenberg_turn
+var temp_braitenberg_left
+var temp_braitenberg_right
+var weights_braitenberg[] = [1,2,3,2,1]
+var weights_braitenberg_turn[] = [-4,-3,0,3,4]
+var vmin = -600
+var vmax = 600
+var led[8]
+var rand_val_2
+var rand_val_1
+var turn = 30
+
+var leader_counter
+var leader_alive
+var follower_counter
+var follower_back_counter
+var follow_counter_3
+
+call leds.top(0,0,0)
+
+call math.rand(robot_id)
+
+
+timer.period[0] = 200
+timer.period[1] = 1000
+
+onevent timer1
+	if state == FOLLOWER then
+		emit ping_leader[chain_id]
+		
+		leader_alive++
+		
+		if leader_alive > 5 then
+			leader_alive = 0
+			state = RANDOM
+		end
+    end
+	if follow_request == 1 then
+		fq_counter++
+	end
+	if fq_counter > 3 then
+		follow_request = 0
+		fq_counter = 0
+	end
+	
+	
+onevent timer0
+	if leader_turnaround == 1 then	
+		if leader_turnaround_counter > 18 then
+			state = RANDOM
+			leader_turnaround = 0
+			leader_turnaround_counter = 0
+		else
+			if prox.horizontal[5] <800 then
+				motor.left.target = 300
+				motor.right.target = -300
+				leader_turnaround_counter++
+			else 
+				leader_turnaround_counter = 0			
+				leader_turnaround = 0
+				state = LEADER
+			end		
+		end	
+
+	elseif state == FOLLOWER then
+		if prox.horizontal[0] == 0 and prox.horizontal[1] == 0 and prox.horizontal[2] == 0 and prox.horizontal[3] == 0 and prox.horizontal[4] == 0  then
+			follower_counter = follower_counter + 1
+		else 
+			follower_counter = 0
+		end
+		
+		if prox.horizontal[5] == 0 and prox.horizontal[6] == 0 and chain_length != chain_pos then
+			follower_back_counter = follower_back_counter  + 1
+		else 
+			follower_back_counter = 0
+		end
+		
+		if follower_back_counter == 30 then
+			follower_back_counter = 0
+			chain_length = chain_pos
+			while  xx < 5 do
+				emit chain_length_update [chain_id, chain_length]
+				xx++
+			end
+			xx = 0
+		end
+		
+		if follower_counter == 20 then
+			follower_counter = 0
+			if  chain_pos != chain_length then
+				while zz < 5 do
+					emit chain_id_split[chain_id, chain_pos, chain_id_counter + 1, chain_pos - 1]
+					zz++				
+				end
+				zz = 0
+				chain_id = chain_id_counter + 1
+				chain_id_counter ++
+				chain_length = chain_length - chain_pos + 1
+				chain_pos = 1
+				state = LEADER
+				while qq < 5 do
+					emit update_chain_id[chain_id_counter]
+					qq++
+				end
+				qq = 0
+			else
+				state = RANDOM
+			end
+		else	
+    		callsub follow
+		end
+	
+	elseif state == LEADER then
+		
+		
+		if prox.horizontal[5] == 0 and prox.horizontal[6] == 0 then
+			leader_counter = leader_counter + 1
+		else
+			leader_counter = 0			
+		end
+		
+		if leader_counter == 40 then
+			state = RANDOM
+			leader_counter = 0
+		else
+			callsub leader
+		end
+	else
+		callsub random
+	end
+
+
+
+onevent prox
+		if leader_turnaround == 0 then
+			if prox.ground.delta[0] > (ground_value[0] * 2) and prox.ground.delta[1] > (ground_value[1] * 2) then
+				motor.right.target = -300
+				motor.left.target = -50
+				tape_touching = 1
+			elseif  prox.ground.delta[0] > (ground_value[0] * 2) then
+				motor.right.target = -300
+				motor.left.target = 300
+				tape_touching = 1
+			elseif prox.ground.delta[1] > (ground_value[1] * 2) then
+				motor.left.target = -300
+				motor.right.target = 300
+				tape_touching = 1
+			else
+				tape_touching = 0
+			end		
+		end
+		
+		if(prox.horizontal[0] > 2000 or prox.horizontal[1] > 2000 or prox.horizontal[2] > 2000 or prox.horizontal[3] > 2000 or prox.horizontal[4] > 2000) and (state == RANDOM or state == LEADER)  and leader_turnaround != 1 then
+			follow_request = 1
+			emit follow_req[robot_id, chain_id, chain_length, chain_pos]
+		end
+
+
+
+onevent follow_req
+	if  follow_request != 1 then
+		
+		if (prox.horizontal[0] > 2000 or prox.horizontal[1] > 2000 or prox.horizontal[2] > 2000 or prox.horizontal[3] > 2000 or prox.horizontal[4] > 2000) then
+			if state == RANDOM then
+				#Random -> <- Leader
+				if event.args[2] >= 2 then
+					chain_id = event.args[1]
+					chain_length = chain_length + event.args[2]
+				    
+				    emit chain_length_pos[chain_id, 1, 1]
+					emit follow_ack[2,event.args[0],0,0,0]
+					leader_turnaround = 1
+				#Random -> <- Random
+				else
+					chain_id_counter ++
+					chain_id = chain_id_counter
+					while s < 10 do
+						emit follow_ack[1, event.args[0], chain_id, chain_length + event.args[2], chain_pos]
+						emit update_chain_id[chain_id_counter]
+						s++
+					end
+					s = 0					
+					chain_length = chain_length + event.args[2]
+					leader_turnaround = 1
+				end
+			end
+			
+			if  state == LEADER and leader_turnaround  != 1 then
+				#Leader -> <- Leader		
+				if event.args[2] >= 2 then
+					emit send_info[1,1]
+				#Leader -> <- Random
+				elseif event.args[2] == 1 then
+					while  u < 10 do
+						emit chain_length_pos[chain_id, chain_length+1, 2]
+						emit follow_ack[3, event.args[0], chain_id, chain_length+1, chain_pos]
+						u++
+					end
+					u = 0					
+					chain_length = chain_length + 1
+					chain_pos = 2
+					state = FOLLOWER 
+				end
+			end
+		end
+	
+		if (prox.horizontal[5] > 2000 or prox.horizontal[6] > 2000) then
+			if  state == RANDOM then
+				#Leader -> Random ->
+				if event.args[2] >= 2 then
+					chain_id = event.args[1]
+					chain_length = chain_length + event.args[2]
+				    while gg < 5 do
+				    	emit chain_length_pos[chain_id, chain_length, 1]
+						emit follow_ack[2,event.args[0],0,0,0]			
+						gg++	    	
+				    end
+				    state = LEADER
+				    gg = 0
+				end
+				#Random -> Random ->
+				if event.args[2] == 1 then
+					chain_id_counter ++
+					chain_id = chain_id_counter
+					while q < 10 do
+						emit follow_ack[1, event.args[0], chain_id, chain_length + event.args[2], chain_pos]
+						emit update_chain_id[chain_id_counter]
+						q++
+					end		
+					q = 0			
+					chain_length = chain_length + event.args[2]
+					state = LEADER
+				end
+				
+			#Backmost follower
+			elseif  state == FOLLOWER and chain_pos == chain_length then
+				
+				#Leader -> Follower ->
+				if event.args[2] >= 2 then
+					while  o < 10 do
+						emit follow_ack[4, event.args[0], chain_id, chain_length, chain_length]
+						emit chain_length_update[chain_id, chain_length+event.args[2]]
+						o++
+					end
+					o = 0
+					chain_length = chain_length + event.args[2]					
+				end
+				#Random -> Follower ->
+				if  event.args[2] == 1 then
+					while k < 10 do
+						emit follow_ack[1, event.args[0], chain_id, chain_length+1, chain_length+1]
+						emit chain_length_update[chain_id, chain_length+1]
+						k++
+					end
+					k = 0
+					chain_length = chain_length + 1
+				end
+			end
+		end
+	else 
+		emit follow_ack[0, event.args[0], 0, 0, 0]
+	end
+
+
+onevent follow_ack
+	#TODO: Also make event for all randoms to update chain_id
+	if robot_id == event.args[1] and (state == RANDOM or state == LEADER) then
+		if event.args[0] == 1 then
+			follow_request = 0
+			fq_counter = 0
+			chain_length = event.args[3]
+			chain_pos = event.args[3]
+			chain_id = event.args[2]
+			state = FOLLOWER
+		elseif  event.args[0] == 2 then
+			follow_request = 0
+			fq_counter = 0
+			state = FOLLOWER
+		elseif event.args[0] == 3 then
+			follow_request = 0
+			fq_counter = 0
+			chain_id = event.args[2]
+			chain_length = event.args[3]
+			leader_turnaround = 1
+		elseif event.args[0] == 4 then
+			follow_request = 0
+			fq_counter = 0
+			while h < 10 do
+				emit chain_length_pos_id[chain_id, chain_length+event.args[3], chain_pos+1, event.args[2], event.args[3]]
+				h++
+			end
+			h = 0
+			chain_id = event.args[2]
+			chain_length = chain_length + event.args[3]
+			chain_pos = chain_pos + event.args[3]
+			state = FOLLOWER
+			test = 0
+		elseif event.args[0] == 0 then
+			follow_request = 0	
+		end	
+	end
+
+
+onevent ping_leader
+	if (state == LEADER or leader_turnaround == 1) and event.args[0] == chain_id then
+		emit leader_ack[chain_id]
+	end
+
+onevent leader_ack
+	if chain_id == event.args[0] then
+		leader_alive = 0		
+	end
+
+onevent chain_length_update
+	if chain_id == event.args[0] then
+		chain_length = event.args[1]
+	end
+
+onevent chain_length_pos_id
+	if  chain_id == event.args[0] and chain_pos == event.args[2] then
+
+		emit chain_length_pos_id[chain_id, chain_length+event.args[1], chain_pos+1, event.args[3], event.args[4]]
+		chain_id = event.args[3]
+		chain_length = event.args[1]
+		chain_pos = chain_pos + event.args[4]
+	end
+	
+onevent chain_length_pos
+	if  chain_id == event.args[0] and chain_pos == event.args[2] then
+		chain_length = event.args[1]
+		chain_pos = chain_pos + 1
+		while f < 10 do
+			emit chain_length_pos[chain_id, chain_length, chain_pos]
+			f++
+		end
+		f = 0
+	end
+
+onevent update_chain_id
+	chain_id_counter = event.args[0]
+	
+onevent chain_id_split
+	if chain_id == event.args[0] and chain_pos == event.args[1] + 1 then	
+		while  kk < 5 do
+			emit chain_id_split[chain_id, chain_pos, event.args[2], event.args[3]]
+			kk++
+		end
+		kk = 0
+		chain_id = event.args[2]
+		chain_pos = chain_pos - event.args[3]
+		chain_length = chain_length - event.args[3]
+	end
+
+
+sub leader
+	call leds.top(0,0,32)
+	
+	leader_turnaround_counter = 0
+	follower_counter = 0
+	follower_back_counter = 0
+	follow_counter_3 = 0
+
+	
+	if prox.ground.delta[0] > ground_value[0] * 2 then
+		left = 1
+		right = 0
+	elseif prox.ground.delta[1] > ground_value[1] * 2 then
+		right = 1
+		left = 0
+	end
+	
+	if tape_touching == 0 then
+		if leader_turnaround == 0 then
+			if right == 0 and left == 0 then
+				motor.left.target = 300
+				motor.right.target = 250
+			elseif left == 1 then
+				motor.left.target = 300
+				motor.right.target = 250
+			elseif right == 1 then
+				motor.left.target = 250
+				motor.right.target = 300
+			end		
+		end		
+	end
+	
+
+	if (prox.horizontal[0] > 3000 or prox.horizontal[1] > 3000 or prox.horizontal[2] > 3000 or prox.horizontal[3] > 3000 or prox.horizontal[4] > 3000) then
+		callsub breit
+	end
+
+sub randomMovement
+		call math.rand(rand_val_1)
+		call math.rand(rand_val_2)
+		motor.left.target = abs(rand_val_1 % 600)
+		motor.right.target  = abs(rand_val_2 % 600)	
+
+### Random movement ###
+sub random
+	if ground_capture == 1 then
+		ground_value[0] = prox.ground.delta[0]
+		ground_value[1] = prox.ground.delta[1]
+		ground_capture = 0
+	end
+	follower_counter = 0
+	call leds.top(32,0,0)
+	chain_length = 1
+	chain_pos = 1
+	chain_id = 0
+	if (prox.horizontal[0] > 3000 or prox.horizontal[1]> 3000 or prox.horizontal[2] > 3000 or prox.horizontal[3]> 3000 or prox.horizontal[4] > 3000) then
+		callsub breit
+	elseif tape_touching == 0 then
+		callsub randomMovement
+	end
+
+
+
+### Follower ###
+sub follow
+	call leds.top(0,32,0)
+    max = prox.horizontal[0]
+    mi = 0
+    speed_l=0
+    #Finds highest intensity sensor value
+    for i in 0:4 do 
+        if prox.horizontal[i]> max then
+            if (i == 0 or i == 4) and max < (prox.horizontal[i] / 2) then
+            	max = prox.horizontal[i]
+            	mi = i
+            else
+            	max = prox.horizontal[i]
+            	mi = i
+            end
+        end
+    end
+ 
+    t = 2 - mi
+    speed_diff = t * (speed / 2)
+    
+    if  max > 4200 then
+		motor.left.target = -100
+		motor.right.target = -100
+	elseif max > 3900 then #4500-4200
+		motor.left.target = 100
+		motor.right.target = 100
+	elseif max < 2000 then
+    	motor.right.target = 400
+    	motor.left.target = 400
+    elseif max < 3600 then #3700-0000
+    	speed_l = 350
+    	 motor.right.target = speed_diff + speed_l 
+     	motor.left.target = speed_l - speed_diff
+    else
+    	speed_l  = 300
+    	motor.right.target = speed_diff + speed_l
+     	motor.left.target = speed_l - speed_diff
+    end
+
+
+
+#TODO MAKE IT TURN BETTER
+### breitenbrug ###     
+sub breit
+	if  state == 1  then
+		return
+	end
+	if (prox.horizontal[0] != 0 and prox.horizontal[1] != 0 and prox.horizontal[2] != 0 and prox.horizontal[3] != 0 and prox.horizontal[4] != 0) then
+		motor.right.target = 200
+		motor.left.target = -200
+		else
+	    if speed >0 then
+	        call math.dot(temp_braitenberg, prox.horizontal[0:4],
+	            weights_braitenberg, 4)
+	        call math.dot(temp_braitenberg_turn, prox.horizontal[0:4],
+	            weights_braitenberg_turn, 4)
+	        call math.muldiv(temp_braitenberg_left, speed,
+	            temp_braitenberg + temp_braitenberg_turn, 125)
+	        call math.muldiv(temp_braitenberg_right, speed,
+	            temp_braitenberg - temp_braitenberg_turn, 125)
+	        motor.left.target = speed - temp_braitenberg_left
+	        motor.right.target = speed - temp_braitenberg_right
+	    elseif speed < 0 then
+	        temp_braitenberg = -300 / speed
+	        motor.left.target = speed + prox.horizontal[6] / temp_braitenberg
+	        motor.right.target = speed + prox.horizontal[5] / temp_braitenberg
+	    end
+	    # Saturation of left and right speed
+	    call math.min(motor.left.target, motor.left.target, vmax)
+	    call math.max(motor.left.target, motor.left.target, vmin)
+	    call math.min(motor.right.target, motor.right.target, vmax)
+	    call math.max(motor.right.target, motor.right.target, vmin)	
+	end
+	
