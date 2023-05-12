@@ -1,0 +1,12 @@
+Timestamp,Chain1,Chain2,Chain3,Chain4,Event
+0,0,0,0,0,0
+17,2,0,0,0,New Chain
+30,2,2,0,0,New Chain
+138,2,2,0,0,Random Steal c1
+141,2,2,0,0,Random Steal c2
+144,0,2,0,0,Chain Dissolved
+144,0,0,0,0,Chain Dissolved
+151,2,0,0,0,New Chain
+154,2,0,0,0,Weird Behaviour
+155,0,0,0,0,Chain Dissolved
+180,0,0,0,0,0

@@ -1,0 +1,9 @@
+Timestamp,Chain1,Chain2,Chain3,Chain4,Event
+0,0,0,0,0,0
+48,2,0,0,0,New Chain
+51,3,0,0,0,New Follower
+60,4,0,0,0,New Follower
+75,4,2,0,0,New Chain
+90,5,2,0,0,New Follower
+104,3,2,2,0,Chain Split
+180,3,2,2,0,0

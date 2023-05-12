@@ -1,0 +1,8 @@
+Timestamp,Chain1,Chain2,Chain3,Chain4,Event
+0,0,0,0,0,0
+13,2,0,0,0,New Chain
+19,2,2,0,0,New Chain
+37,2,0,0,0,Leader Loss
+68,0,0,0,0,Leader Loss
+155,2,0,0,0,New Chain
+180,2,0,0,0,0

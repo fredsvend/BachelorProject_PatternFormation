@@ -1,0 +1,27 @@
+Timestamp,Chain1,Chain2,Chain3,Chain4,Event
+0,0,0,0,0,0
+14,2,0,0,0,New Chain
+19,0,0,0,0,Chain Dissolved
+26,2,0,0,0,New Chain
+32,3,0,0,0,New Follower
+51,3,0,0,0,Weird Behaviour
+54,3,2,0,0,New Chain
+57,2,2,0,0,Lost Follower
+58,0,2,0,0,Chain Dissolved
+63,0,0,0,0,Chain Dissolved
+78,2,0,0,0,New Chain
+91,2,2,0,0,New Chain
+94,2,2,2,0,New Chain
+100,2,2,3,0,New Follower
+108,2,2,3,0,Random Steal c2
+110,2,2,3,0,Random Steal c3
+115,2,0,3,0,Chain Dissolved
+117,2,0,2,0,Lost Follower
+119,2,0,0,0,Chain Dissolved
+123,0,0,0,0,Chain Dissolved
+124,0,0,0,0,Weird Behaviour
+134,2,0,0,0,New Chain
+139,2,2,0,0,New Chain
+162,2,3,0,0,New Follower
+164,2,3,2,0,New Chain
+180,2,3,2,0,0

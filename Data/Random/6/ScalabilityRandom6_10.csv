@@ -1,0 +1,15 @@
+Timestamp,Chain1,Chain2,Chain3,Chain4,Event
+0,0,0,0,0,0
+30,2,0,0,0,New Chain
+32,2,2,0,0,New Chain
+35,3,2,0,0,New Follower
+70,2,2,0,0,Leader Loss
+71,2,2,0,0,Weird Behaviour
+79,2,0,0,0,Chain Dissolved
+102,2,2,0,0,New Chain
+114,2,3,0,0,New Follower
+121,2,2,0,0,Leader Loss
+136,2,0,0,0,Chain Dissolved
+167,2,0,0,0,Weird Behaviour
+171,2,2,0,0,New Chain
+180,2,2,0,0,0

@@ -1,0 +1,12 @@
+Timestamp,Chain1,Chain2,Chain3,Chain4,Event
+0,0,0,0,0,0
+25,2,0,0,0,New Chain
+38,0,0,0,0,Leader Loss
+41,2,0,0,0,New Chain
+44,2,2,0,0,New Chain
+59,2,3,0,0,New Follower
+115,0,3,0,0,Chain Dissolved
+122,0,2,0,0,Lost Follower
+148,0,3,0,0,New Follower
+165,0,4,0,0,New Follower
+180,0,4,0,0,0

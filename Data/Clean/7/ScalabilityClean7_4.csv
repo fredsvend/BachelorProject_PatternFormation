@@ -1,0 +1,13 @@
+Timestamp,Chain1,Chain2,Chain3,Chain4,Event
+0,0,0,0,0,0
+18,2,0,0,0,New Chain
+25,2,2,0,0,New Chain
+29,3,2,0,0,New Follower
+46,3,0,0,0,Leader Loss
+100,3,0,0,0,Random Steal c1
+109,2,0,0,0,Lost Follower
+114,2,2,0,0,New Chain
+120,3,2,0,0,New Follower
+139,3,3,0,0,New Follower
+163,6,0,0,0,Chain Merge
+180,6,0,0,0,0
